@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+
+:root {
+  --tosca: #1A6B5A;
+  --tosca-dark: #0F4A3C;
+  --tosca-light: #DCF0EB;
+  --tosca-mid: #259078;
+  --gold: #C8952A;
+  --gold-light: #FBF3DF;
+  --gold-mid: #E8B84B;
+  --gold-bright: #F5CC5A;
+  --ivory: #FDFAF2;
+  --ivory-dark: #EEE5CC;
+  --ivory-border: #DDD0B3;
+  --ink: #1A2E28;
+  --ink2: #2D4F45;
+  --ink3: #6B8C84;
+}
+
+body {
+  background-color: var(--ivory);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Batik strip utility */
+.batik-strip-top {
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--tosca) 0px, var(--tosca) 10px,
+    var(--gold-mid) 10px, var(--gold-mid) 20px,
+    var(--tosca-mid) 20px, var(--tosca-mid) 30px,
+    var(--gold) 30px, var(--gold) 40px
+  );
+}

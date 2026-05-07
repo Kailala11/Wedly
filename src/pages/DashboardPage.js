@@ -11,9 +11,7 @@ export default function DashboardPage({ setPage, setSelectedEventId }) {
   const [cashflow, setCashflow] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
+  useEffect(() => { fetchAll(); }, []); // eslint-disable-line
 
   async function fetchAll() {
     setLoading(true);
@@ -30,7 +28,7 @@ export default function DashboardPage({ setPage, setSelectedEventId }) {
 
   const activeEvents = events.filter(e => e.status !== 'done');
   const totalBudget = events.reduce((s, e) => s + (e.budget || 0), 0);
-  const totalVendorCost = vendors.reduce((s, v) => s + (v.contract_amount || 0), 0);
+  // const totalVendorCost = vendors.reduce((s, v) => s + (v.contract_amount || 0), 0);
   const totalIn = cashflow.filter(c => c.type === 'in').reduce((s, c) => s + (c.amount || 0), 0);
   const totalOut = cashflow.filter(c => c.type === 'out').reduce((s, c) => s + (c.amount || 0), 0);
   const cashBalance = totalIn - totalOut;

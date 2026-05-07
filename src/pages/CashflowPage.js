@@ -16,7 +16,7 @@ export default function CashflowPage() {
     type: 'in', event_id: '', category: '', description: '', amount: '', date: new Date().toISOString().split('T')[0]
   });
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); }, []); // eslint-disable-line
 
   async function fetchAll() {
     setLoading(true);

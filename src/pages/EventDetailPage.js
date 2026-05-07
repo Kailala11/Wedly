@@ -4,10 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { fmt, fmtDate, getDaysUntil, getDueLabel, VENDOR_CATEGORIES } from '../utils/helpers';
 import {
   Card, Btn, Input, Select, Spinner, Empty, Modal,
-  SectionHeader, MetricCard, ProgressBar, StatusPill, Alert, Badge
+  SectionHeader, MetricCard, ProgressBar, StatusPill, Alert
 } from '../components/UI';
+import MeetingNotes from '../components/MeetingNotes';
+import Reminders from '../components/Reminders';
 
-const TABS = ['Vendor', 'Keuangan', 'Timeline', 'Checklist', 'Dokumen', 'AI Advisor'];
+const TABS = ['Vendor', 'Keuangan', 'Timeline', 'Checklist', 'Rapat', 'Reminder', 'Dokumen', 'AI Advisor'];
 
 export default function EventDetailPage({ eventId, setPage }) {
   const { user } = useAuth();
@@ -34,10 +36,13 @@ export default function EventDetailPage({ eventId, setPage }) {
   const [aiAlloc, setAiAlloc] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
 
-  // File upload
   const fileRef = useRef();
 
-  useEffect(() => { if (eventId) fetchAll(); }, [eventId]);
+  // CHECKLIST CUSTOM
+  const [showAddChecklist, setShowAddChecklist] = useState(false);
+  const [clForm, setClForm] = useState({ group_name: 'H-30', text: '' });
+
+  useEffect(() => { if (eventId) fetchAll(); }, [eventId]); // eslint-disable-line
 
   async function fetchAll() {
     setLoading(true);
@@ -118,6 +123,26 @@ export default function EventDetailPage({ eventId, setPage }) {
     setChecklist(cl => cl.map(c => c.id === id ? { ...c, done: !done } : c));
   }
 
+  async function saveChecklistItem() {
+    if (!clForm.text.trim()) return;
+    const maxOrder = checklist.filter(c => c.group_name === clForm.group_name).length;
+    await supabase.from('checklist_items').insert({
+      event_id: eventId, user_id: user.id,
+      group_name: clForm.group_name,
+      text: clForm.text.trim(),
+      done: false,
+      sort_order: maxOrder * 100 + 99,
+    });
+    setClForm(f => ({ ...f, text: '' }));
+    setShowAddChecklist(false);
+    fetchAll();
+  }
+
+  async function deleteChecklistItem(id) {
+    await supabase.from('checklist_items').delete().eq('id', id);
+    setChecklist(cl => cl.filter(c => c.id !== id));
+  }
+
   // DOCUMENTS
   async function uploadDoc(e) {
     const file = e.target.files[0]; if (!file) return;
@@ -145,13 +170,12 @@ export default function EventDetailPage({ eventId, setPage }) {
     setDocuments(ds => ds.filter(d => d.id !== id));
   }
 
-  // AI ADVISOR
   async function runAI() {
     if (!aiForm.kota || !aiForm.tamu) return;
     setAiLoading(true);
     try {
       const budget = aiForm.budget || event?.budget || 0;
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -181,7 +205,7 @@ Total pct=100. Bahasa Indonesia, maks 200 kata.`
       if (jm) { try { setAiAlloc(JSON.parse(jm[1].trim())); } catch (e) {} }
       setAiResult(raw.replace(/```json[\s\S]*?```/g, '').trim());
     } catch (err) {
-      setAiResult('Gagal menghubungi AI. Pastikan terhubung ke internet.');
+      setAiResult('Gagal menghubungi AI. Coba lagi.');
     }
     setAiLoading(false);
   }
@@ -219,19 +243,19 @@ Total pct=100. Bahasa Indonesia, maks 200 kata.`
               <span>Budget: {fmt(event.budget)}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Btn variant="teal" size="sm" onClick={() => {/* export excel */}}>↓ Excel</Btn>
-            <Btn variant="amber" size="sm" onClick={() => {/* export pdf */}}>↓ PDF</Btn>
-            <select
-              value={event.status}
-              onChange={e => updateEventStatus(e.target.value)}
-              className="text-xs border border-[#E5E0D8] rounded-lg px-2.5 py-1.5 bg-white text-gray-600 appearance-none cursor-pointer"
-            >
-              <option value="planning">Planning</option>
-              <option value="ongoing">Ongoing</option>
-              <option value="done">Done</option>
-            </select>
-          </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <Btn variant="teal" size="sm" onClick={() => {/* export excel */}}>↓ Excel</Btn>
+          <Btn variant="amber" size="sm" onClick={() => {/* export pdf */}}>↓ PDF</Btn>
+          <select
+            value={event.status}
+            onChange={e => updateEventStatus(e.target.value)}
+            className="text-xs border border-[#E5E0D8] rounded-lg px-2.5 py-1.5 bg-white text-gray-600 appearance-none cursor-pointer"
+          >
+            <option value="planning">Planning</option>
+            <option value="ongoing">Ongoing</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
         </div>
       </Card>
 
@@ -364,6 +388,35 @@ Total pct=100. Bahasa Indonesia, maks 200 kata.`
             <div className="flex justify-between mb-2"><span className="text-sm font-semibold">Progress Persiapan</span><span className="text-sm text-gray-500">{clDone}/{clTotal} ({clPct}%)</span></div>
             <ProgressBar pct={clPct} color={clPct === 100 ? '#1D9E75' : '#D4537E'} height={8} />
           </Card>
+
+          <SectionHeader
+            title="Checklist"
+            action={<Btn size="sm" onClick={() => setShowAddChecklist(!showAddChecklist)}>{showAddChecklist ? '× Tutup' : '+ Tambah Item'}</Btn>}
+          />
+
+          {showAddChecklist && (
+            <Card className="p-3 mb-4 bg-[#F4F0EC]">
+              <div className="flex flex-col gap-2">
+                <Select
+                  label="Grup"
+                  value={clForm.group_name}
+                  onChange={v => setClForm(f => ({ ...f, group_name: v }))}
+                  options={['H-30', 'H-14', 'H-7', 'H-1', 'Lainnya']}
+                />
+                <Input
+                  label="Item checklist"
+                  value={clForm.text}
+                  onChange={v => setClForm(f => ({ ...f, text: v }))}
+                  placeholder="cth. Konfirmasi MC"
+                />
+                <div className="flex gap-2">
+                  <Btn onClick={saveChecklistItem} className="flex-1">Simpan</Btn>
+                  <Btn variant="ghost" onClick={() => setShowAddChecklist(false)}>Batal</Btn>
+                </div>
+              </div>
+            </Card>
+          )}
+
           {clGroups.map(group => {
             const items = checklist.filter(c => c.group_name === group);
             const groupDone = items.filter(c => c.done).length;
@@ -371,12 +424,25 @@ Total pct=100. Bahasa Indonesia, maks 200 kata.`
               <div key={group} className="mb-5">
                 <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{group} ({groupDone}/{items.length})</div>
                 {items.map(item => (
-                  <div key={item.id} onClick={() => toggleChecklist(item.id, item.done)}
-                    className={`flex items-center gap-3 px-3 py-2.5 bg-white border border-[#E5E0D8] rounded-xl mb-2 cursor-pointer hover:bg-[#FAF9F7] ${item.done ? 'opacity-55' : ''}`}>
-                    <div className={`w-4.5 h-4.5 rounded-md border-2 flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors ${item.done ? 'bg-[#1D9E75] border-[#1D9E75] text-white' : 'border-[#E5E0D8]'}`}>
+                  <div key={item.id} className={`flex items-center gap-3 px-3 py-2.5 bg-white border border-[#E5E0D8] rounded-xl mb-2 ${item.done ? 'opacity-55' : ''}`}>
+                    <div
+                      onClick={() => toggleChecklist(item.id, item.done)}
+                      className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors cursor-pointer ${item.done ? 'bg-[#1D9E75] border-[#1D9E75] text-white' : 'border-[#E5E0D8]'}`}
+                    >
                       {item.done ? '✓' : ''}
                     </div>
-                    <span className={`text-sm ${item.done ? 'line-through text-gray-400' : 'text-gray-800'}`}>{item.text}</span>
+                    <span
+                      onClick={() => toggleChecklist(item.id, item.done)}
+                      className={`text-sm flex-1 cursor-pointer ${item.done ? 'line-through text-gray-400' : 'text-gray-800'}`}
+                    >
+                      {item.text}
+                    </span>
+                    <button
+                      onClick={() => deleteChecklistItem(item.id)}
+                      className="text-gray-300 hover:text-[#E24B4A] text-lg leading-none flex-shrink-0"
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>
@@ -385,8 +451,18 @@ Total pct=100. Bahasa Indonesia, maks 200 kata.`
         </div>
       )}
 
-      {/* TAB 4: DOKUMEN */}
+      {/* TAB 4: RAPAT */}
       {tab === 4 && (
+        <MeetingNotes eventId={eventId} />
+      )}
+
+      {/* TAB 5: REMINDER */}
+      {tab === 5 && (
+        <Reminders eventId={eventId} />
+      )}
+
+      {/* TAB 6: DOKUMEN */}
+      {tab === 6 && (
         <div>
           <div
             onClick={() => fileRef.current?.click()}
@@ -410,8 +486,8 @@ Total pct=100. Bahasa Indonesia, maks 200 kata.`
         </div>
       )}
 
-      {/* TAB 5: AI ADVISOR */}
-      {tab === 5 && (
+      {/* TAB 7: AI ADVISOR */}
+      {tab === 7 && (
         <div>
           <Card className="overflow-hidden">
             <div className="px-4 py-3 border-b border-[#E5E0D8] flex items-center gap-2">

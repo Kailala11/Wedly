@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Card, Btn, Input, SectionHeader } from '../components/UI';
+import { Card, Btn, Input } from '../components/UI';
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
@@ -9,11 +9,11 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
+  useEffect(() => { // eslint-disable-line
     supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => {
       if (data) setProfile(data);
     });
-  }, []);
+  }, []); // eslint-disable-line
 
   async function saveProfile() {
     setSaving(true);

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { fmt, fmtDate, getDaysUntil, CHECKLIST_TEMPLATE } from '../utils/helpers';
-import { Card, Badge, Btn, Input, Select, Spinner, Empty, Modal, SectionHeader } from '../components/UI';
+import { Card, Badge, Btn, Input, Spinner, Empty, Modal, SectionHeader } from '../components/UI';
 
 export default function EventsPage({ setPage, setSelectedEventId }) {
   const { user } = useAuth();
@@ -13,7 +13,7 @@ export default function EventsPage({ setPage, setSelectedEventId }) {
   const [form, setForm] = useState({ name: '', date: '', venue: '', budget: '' });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); }, []); // eslint-disable-line
 
   async function fetchAll() {
     setLoading(true);
