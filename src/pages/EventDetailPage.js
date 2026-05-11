@@ -243,7 +243,11 @@ Total pct=100. Bahasa Indonesia, maks 200 kata.`
               <span>Budget: {fmt(event.budget)}</span>
             </div>
           </div>
+<<<<<<< HEAD
+      <div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}}>
+=======
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+>>>>>>> 95f045fd16fce2414d116965c469852fec491ea4
           <Btn variant="teal" size="sm" onClick={() => {/* export excel */}}>↓ Excel</Btn>
           <Btn variant="amber" size="sm" onClick={() => {/* export pdf */}}>↓ PDF</Btn>
           <select
