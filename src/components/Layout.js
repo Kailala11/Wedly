@@ -4,10 +4,7 @@ import { useAuth } from '../context/AuthContext';
 const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: '⌂' },
   { id: 'events',    label: 'Events',    icon: '◫' },
-<<<<<<< HEAD
   { id: 'meetings',  label: 'Rapat',     icon: '📝' },
-=======
->>>>>>> 95f045fd16fce2414d116965c469852fec491ea4
   { id: 'cashflow',  label: 'Keuangan',  icon: '◈' },
   { id: 'settings',  label: 'Pengaturan',icon: '⚙' },
 ];
