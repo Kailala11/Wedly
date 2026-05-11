@@ -9,7 +9,6 @@ import CashflowPage from './pages/CashflowPage';
 
 import MeetingsPage from './pages/MeetingsPage';
 
-95f045fd16fce2414d116965c469852fec491ea4
 import SettingsPage from './pages/SettingsPage';
 import { Spinner } from './components/UI';
 
@@ -23,7 +22,7 @@ function AppInner() {
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#FDFAF2'}}>
 
     <div className="min-h-screen flex items-center justify-center bg-[#FAF9F7]">
-95f045fd16fce2414d116965c469852fec491ea4
+
       <Spinner />
     </div>
   );
@@ -38,7 +37,6 @@ function AppInner() {
 
       case 'meetings': return <MeetingsPage />;
 
-95f045fd16fce2414d116965c469852fec491ea4
       case 'cashflow': return <CashflowPage />;
       case 'settings': return <SettingsPage />;
       default: return <DashboardPage setPage={setPage} setSelectedEventId={setSelectedEventId} />;
