@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { WorkspaceProvider, useWorkspace } from './context/WorkspaceContext';
 import Layout from './components/Layout';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
@@ -11,11 +12,12 @@ import SettingsPage from './pages/SettingsPage';
 import { Spinner } from './components/UI';
 
 function AppInner() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { workspace, loading: wsLoading } = useWorkspace();
   const [page, setPage] = useState('dashboard');
   const [selectedEventId, setSelectedEventId] = useState(null);
 
-  if (loading) return (
+  if (authLoading || (user && wsLoading)) return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#FDFAF2'}}>
       <Spinner />
     </div>
@@ -45,7 +47,9 @@ function AppInner() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppInner />
+      <WorkspaceProvider>
+        <AppInner />
+      </WorkspaceProvider>
     </AuthProvider>
   );
 }
