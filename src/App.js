@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import AuthPage from './pages/AuthPage';
@@ -6,9 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import EventsPage from './pages/EventsPage';
 import EventDetailPage from './pages/EventDetailPage';
 import CashflowPage from './pages/CashflowPage';
-
 import MeetingsPage from './pages/MeetingsPage';
-
 import SettingsPage from './pages/SettingsPage';
 import { Spinner } from './components/UI';
 
@@ -18,11 +16,7 @@ function AppInner() {
   const [selectedEventId, setSelectedEventId] = useState(null);
 
   if (loading) return (
-
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#FDFAF2'}}>
-
-    <div className="min-h-screen flex items-center justify-center bg-[#FAF9F7]">
-
       <Spinner />
     </div>
   );
@@ -34,9 +28,7 @@ function AppInner() {
       case 'dashboard': return <DashboardPage setPage={setPage} setSelectedEventId={setSelectedEventId} />;
       case 'events': return <EventsPage setPage={setPage} setSelectedEventId={setSelectedEventId} />;
       case 'event-detail': return <EventDetailPage eventId={selectedEventId} setPage={setPage} />;
-
       case 'meetings': return <MeetingsPage />;
-
       case 'cashflow': return <CashflowPage />;
       case 'settings': return <SettingsPage />;
       default: return <DashboardPage setPage={setPage} setSelectedEventId={setSelectedEventId} />;
