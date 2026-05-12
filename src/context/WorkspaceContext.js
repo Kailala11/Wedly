@@ -18,36 +18,56 @@ export function WorkspaceProvider({ children }) {
 
   async function fetchWorkspace() {
     setLoading(true);
-    const { data: mem } = await supabase
-      .from('workspace_members')
-      .select('*, workspaces(*)')
-      .eq('user_id', user.id)
-      .single();
-
-    if (mem) {
-      setWorkspace(mem.workspaces);
-      setRole(mem.role);
-      // Fetch all members
-      const { data: allMembers } = await supabase
+    try {
+      const { data: mem } = await supabase
         .from('workspace_members')
-        .select('*, profiles(owner_name)')
-        .eq('workspace_id', mem.workspace_id);
-      setMembers(allMembers || []);
+        .select('role, workspace_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (mem) {
+        setRole(mem.role);
+
+        const { data: ws } = await supabase
+          .from('workspaces')
+          .select('*')
+          .eq('id', mem.workspace_id)
+          .single();
+
+        setWorkspace(ws);
+
+        const { data: allMembers } = await supabase
+          .from('workspace_members')
+          .select('id, user_id, role, joined_at')
+          .eq('workspace_id', mem.workspace_id);
+
+        // Get profiles separately
+        const membersList = await Promise.all((allMembers || []).map(async m => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('owner_name')
+            .eq('id', m.user_id)
+            .single();
+          return { ...m, profiles: profile };
+        }));
+
+        setMembers(membersList);
+      }
+    } catch (e) {
+      console.error(e);
     }
     setLoading(false);
   }
 
   async function joinWorkspace(inviteCode) {
-    // Find workspace by invite code
     const { data: ws } = await supabase
       .from('workspaces')
       .select('*')
       .eq('invite_code', inviteCode.toUpperCase().trim())
       .single();
 
-    if (!ws) return { error: 'Kode tim tidak ditemukan. Cek kembali kode dari owner WO kamu.' };
+    if (!ws) return { error: 'Kode tim tidak ditemukan.' };
 
-    // Check if already member
     const { data: existing } = await supabase
       .from('workspace_members')
       .select('id')
@@ -57,13 +77,11 @@ export function WorkspaceProvider({ children }) {
 
     if (existing) return { error: 'Kamu sudah bergabung di workspace ini.' };
 
-    // Join as member
     const { error } = await supabase
       .from('workspace_members')
       .insert({ workspace_id: ws.id, user_id: user.id, role: 'member' });
 
     if (error) return { error: error.message };
-
     await fetchWorkspace();
     return { success: true, wsName: ws.name };
   }
